@@ -1,27 +1,31 @@
+set nocompatible              " be iMproved
 syntax on
-set number
-set relativenumber
+filetype off
 
-set nocompatible              " be iMproved, required
-filetype off                  " required
 set rtp+=~/.vim/bundle/Vundle.vim
 call vundle#begin()
 
-Plugin 'ervandew/supertab'
-Plugin 'SirVer/ultisnips'
-Plugin 'Valloric/YouCompleteMe'
 Plugin 'scrooloose/syntastic'
-Plugin 'altercation/vim-colors-solarized'
 " Plugin 'jiangmiao/auto-pairs'
 Plugin 'bling/vim-airline'
 Plugin 'tComment'
 Plugin 'flazz/vim-colorschemes'
 Plugin 'scrooloose/nerdtree'
-Plugin 'Lokaltog/vim-easymotion'
+" Plugin 'Lokaltog/vim-easymotion'
 Plugin 'honza/vim-snippets'
+Plugin 'godlygeek/tabular'
+Plugin 'plasticboy/vim-markdown'
 
-call vundle#end()            " required
-filetype plugin indent on    " required
+Plugin 'Rip-Rip/clang_complete'
+Plugin 'Shougo/neocomplete.vim'
+Plugin 'SirVer/ultisnips'
+
+call vundle#end()
+
+filetype plugin indent on     " Auto indent
+
+set number                    " Show line numbers
+set relativenumber            " Make the line numbers relative to current position
 
 syntax enable
 colorscheme mustang
@@ -29,17 +33,20 @@ set guifont=Inconsolata\ for\ Powerline\ 10
 
 set laststatus=2
 set encoding=utf-8
+set ffs=unix,dos,mac
 set t_Co=256
 
-set so=12
+set so=12                     " Avoid cursor getting to bottom/top
 set wildignore=*.o,*~,*.pyc
 set ruler
 set cmdheight=1
 
+" Search options
 set ignorecase
 set smartcase
 set hlsearch
 nmap // :noh<cr>
+
 set pastetoggle=<F2>
 
 set showmatch
@@ -50,15 +57,9 @@ set novisualbell
 set t_vb=
 set tm=500
 
-set encoding=utf8
-set ffs=unix,dos,mac
-
 set nobackup
 set nowb
 set noswapfile
-
-map j gj
-map k gk
 
 set expandtab
 set smarttab
@@ -69,23 +70,26 @@ set ai
 set si
 set wrap
 
-map <C-j> <C-W>j
-map <C-k> <C-W>k
-map <C-h> <C-W>h
-map <C-l> <C-W>l
+map j gj
+map k gk
+
+" move between viewports
+nnoremap <C-j> <C-W>j
+nnoremap <C-k> <C-W>k
+nnoremap <C-h> <C-W>h
+nnoremap <C-l> <C-W>l
 
 nnoremap H 0
 nnoremap L $
 vnoremap H 0
 vnoremap L $
 
-inoremap <A-x> <esc>
+inoremap <C-Space> <esc>
 
 " Set leader key
-let mapleader = ","
 let g:mapleader = ","
-let maplocalleader = "\\"
 
+" Open at the previous cursor position
 autocmd BufReadPost *
      \ if line("'\"") > 0 && line("'\"") <= line("$") |
      \   exe "normal! g`\"" |
@@ -119,23 +123,10 @@ nmap <space> gcc
 " comment selection
 vmap <space> gc
 
-" clang support for ycm
-let g:ycm_global_ycm_extra_conf = '~/.vim/.ycm_extra_conf.py'
+" map <Leader> <Plug>(easymotion-prefix)
+
 let g:syntastic_cpp_compiler = 'g++'
 let g:syntastic_cpp_compiler_options = ' -std=c++11 -stdlib=libc++'
-map <Leader> <Plug>(easymotion-prefix)
-" make YCM compatible with UltiSnips (using supertab)
-let g:ycm_key_list_select_completion = ['<C-n>', '<Down>']
-let g:ycm_key_list_previous_completion = ['<C-p>', '<Up>']
-let g:SuperTabDefaultCompletionType = '<C-n>'
-
-" better key bindings for UltiSnipsExpandTrigger
-let g:UltiSnipsExpandTrigger = "<tab>"
-let g:UltiSnipsJumpForwardTrigger = "<tab>"
-let g:UltiSnipsJumpBackwardTrigger = "<s-tab>"
-
-let g:ycm_autoclose_preview_window_after_completion = 1
-" Sudo write hack
 nnoremap <leader>sw :w !sudo tee %<CR>
 
 " Competitive Programming Stuffs
@@ -149,7 +140,76 @@ nnoremap <leader>cr :execute '!g++ --std=c++11 ' . shellescape(join([expand("%:r
     \ ' && ./a.out < '. shellescape(join([expand("%:r"), "in"], "."), 1)<CR>
 " Copy code to clipboard
 nnoremap <leader>cc ggvG"+y``
-":inoremap <esc> <nop>
 
+" Copy to clipboard
 vnoremap <leader>y "+y
+" Paste from clipboard
+vnoremap <leader>p "+p
+
 nnoremap <leader>w :w<CR>
+
+let g:vim_markdown_folding_disabled=1
+
+" neocomplete
+" Disable AutoComplPop.
+let g:acp_enableAtStartup = 0
+" Use neocomplete.
+let g:neocomplete#enable_at_startup = 1
+" Use smartcase.
+let g:neocomplete#enable_smart_case = 1
+" Set minimum syntax keyword length.
+let g:neocomplete#sources#syntax#min_keyword_length = 3
+let g:neocomplete#lock_buffer_name_pattern = '\*ku\*'
+
+" Define keyword.
+if !exists('g:neocomplete#keyword_patterns')
+    let g:neocomplete#keyword_patterns = {}
+endif
+let g:neocomplete#keyword_patterns['default'] = '\h\w*'
+
+" " Plugin key-mappings.
+" inoremap <expr><C-g>     neocomplete#undo_completion()
+" inoremap <expr><C-l>     neocomplete#complete_common_string()
+
+" Recommended key-mappings.
+" <CR>: close popup and save indent.
+inoremap <silent> <CR> <C-r>=<SID>my_cr_function()<CR>
+function! s:my_cr_function()
+  " For no inserting <CR> key.
+  return pumvisible() ? neocomplete#close_popup() : "\<CR>"
+endfunction
+" <TAB>: completion.
+inoremap <expr><C-j>  pumvisible() ? "\<C-n>" : "\<TAB>"
+inoremap <expr><C-k>  pumvisible() ? "\<C-p>" : "\<TAB>"
+" <C-h>, <BS>: close popup and delete backword char.
+inoremap <expr><C-h> neocomplete#smart_close_popup()."\<C-h>"
+inoremap <expr><BS> neocomplete#smart_close_popup()."\<C-h>"
+
+" Enable omni completion.
+autocmd FileType css setlocal omnifunc=csscomplete#CompleteCSS
+autocmd FileType html,markdown setlocal omnifunc=htmlcomplete#CompleteTags
+autocmd FileType javascript setlocal omnifunc=javascriptcomplete#CompleteJS
+autocmd FileType python setlocal omnifunc=pythoncomplete#Complete
+autocmd FileType xml setlocal omnifunc=xmlcomplete#CompleteTags
+
+" Enable heavy omni completion.
+if !exists('g:neocomplete#sources#omni#input_patterns')
+  let g:neocomplete#sources#omni#input_patterns = {}
+endif
+
+let g:neocomplete#enable_auto_close_preview = 1
+
+
+" clang_complete + neovim
+if !exists('g:neocomplete#force_omni_input_patterns')
+    let g:neocomplete#force_omni_input_patterns = {}
+endif
+let g:neocomplete#force_omni_input_patterns.c =
+            \ '[^.[:digit:] *\t]\%(\.\|->\)\w*'
+let g:neocomplete#force_omni_input_patterns.cpp =
+            \ '[^.[:digit:] *\t]\%(\.\|->\)\w*\|\h\w*::\w*'
+let g:clang_complete_auto = 0
+let g:clang_auto_select = 0
+let g:clang_default_keymappings = 0
+let g:clang_use_library = 1
+

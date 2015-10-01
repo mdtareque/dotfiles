@@ -126,7 +126,7 @@ vmap <space> gc
 " map <Leader> <Plug>(easymotion-prefix)
 
 let g:syntastic_cpp_compiler = 'g++'
-let g:syntastic_cpp_compiler_options = ' -std=c++11 -stdlib=libc++'
+" let g:syntastic_cpp_compiler_options = ' -std=c++11 -stdlib=libc++'
 nnoremap <leader>sw :w !sudo tee %<CR>
 
 " Competitive Programming Stuffs
